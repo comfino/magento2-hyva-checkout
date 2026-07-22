@@ -1,0 +1,38 @@
+/*
+ * Magento/Hyvä-specific positioning context for the Comfino loader overlay.
+ *
+ * The shared, CDN-served comfino-checkout.css positions the loader as an absolute overlay (inset: 0) over the Comfino
+ * payment-method tile, but that overlay needs a positioned ancestor at first paint. The SDK's cross-platform
+ * .comfino-payment-method-item class is added client-side — too late for the initial paint — so we establish the
+ * positioning context here on Hyvä Checkout's stable tile id.
+ *
+ * Kept separate from the CDN file on purpose: this selector is platform-specific (Hyvä's tile id), while the CDN file
+ * stays shop-agnostic so WooCommerce/PrestaShop can reuse it unchanged.
+ */
+#payment-method-option-comfino {
+    position: relative;
+}
+
+/*
+ * Comfino logo placeholder sizing. RenderComfinoLoader renders the placeholder `<img>` unstyled — DefaultPaymentMethodItemRenderer
+ * only swaps its `src` on an adopted node and never applies its own inline sizing, deferring to the shop's own CSS
+ * (unlike a freshly-injected node, which does get inline sizing). Kept here, not the shared CDN file, for the same reason
+ * as the positioning-context rule above.
+ */
+#payment-method-option-comfino .comfino-payment-method-item__logo {
+    height: 18px;
+    max-width: 95px;
+    margin: 0 5px;
+    vertical-align: middle;
+}
+
+/*
+ * Hide the Comfino tile when the SDK fails to load or stalls — the CDN registrar (comfino-magento-hyva.min.js) flags
+ * <body> with .comfino-sdk-failed (on <body> so it survives Magewire morphs that strip per-tile classes). This matches
+ * the Luma frontend, which never shows a Comfino method that cannot function, instead of leaving the loader spinning
+ * over a dead tile. Scoped :not(--ready) so a slow SDK that succeeds after the failure flag was set (e.g. past the
+ * stall timeout) still reveals the tile once it marks the item ready.
+ */
+body.comfino-sdk-failed #payment-method-option-comfino:not(.comfino-payment-method-item--ready) {
+    display: none !important;
+}

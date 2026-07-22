@@ -1,0 +1,91 @@
+{
+    "name": "comfino/magento2-hyva-checkout",
+    "description": "Hyv\u00e4 Checkout compatibility module for Comfino Payment Gateway.",
+    "license": "OSL-3.0",
+    "type": "magento2-module",
+    "keywords": [
+        "magento2",
+        "payment",
+        "gateway",
+        "comfino",
+        "hyva",
+        "hyva-checkout",
+        "checkout",
+        "installments",
+        "bnpl"
+    ],
+    "homepage": "https://github.com/comfino/magento2-hyva-checkout",
+    "authors": [
+        {
+            "name": "Artur Kozubski",
+            "email": "a.kozubski@artkosoft.pl",
+            "homepage": "https://artkosoft.pl"
+        }
+    ],
+    "support": {
+        "email": "pomoc@comfino.pl",
+        "issues": "https://github.com/comfino/magento2-hyva-checkout/issues",
+        "source": "https://github.com/comfino/magento2-hyva-checkout"
+    },
+    "require": {
+        "php": ">=8.1",
+        "comfino/magento2": "^4.0",
+        "hyva-themes/magento2-hyva-checkout": "^1.0.5",
+        "hyva-themes/magento2-compat-module-fallback": "*",
+        "magento/framework": "^103.0.4",
+        "magewirephp/magewire": "^1.0"
+    },
+    "require-dev": {
+        "bitexpert/phpstan-magento": "^0.42",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "magento/magento-coding-standard": "^40.0",
+        "magento/marketplace-eqp": "^2.0",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^10.5",
+        "squizlabs/php_codesniffer": "^3.8"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Comfino\\ComfinoGatewayHyvaCheckout\\": ""
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Comfino\\Tests\\": "Test/"
+        },
+        "exclude-from-classmap": [
+            "Test/Stub/"
+        ]
+    },
+    "config": {
+        "preferred-install": "dist",
+        "optimize-autoloader": true,
+        "prepend-autoloader": false,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "magento/composer-dependency-version-audit-plugin": true
+        }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "@post-install-setup"
+        ],
+        "post-update-cmd": [
+            "@post-install-setup"
+        ],
+        "post-install-setup": [
+            "vendor/bin/phpcs --config-set installed_paths vendor/magento/magento-coding-standard,vendor/magento/marketplace-eqp",
+            "vendor/bin/phpcbf --config-set installed_paths vendor/magento/magento-coding-standard,vendor/magento/marketplace-eqp"
+        ],
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html coverage",
+        "cs": "vendor/bin/phpcs",
+        "cs-fix": "vendor/bin/phpcbf",
+        "analyse": "vendor/bin/phpstan analyse --no-progress"
+    },
+    "minimum-stability": "beta",
+    "prefer-stable": true
+}

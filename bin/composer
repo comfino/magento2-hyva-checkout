@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Proxy script: runs Composer inside Docker if available, otherwise on host
+
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+PROJECT_DIR=$(dirname "$SCRIPT_DIR")
+SERVICE_NAME="comfino-magento2-hyva-checkout"
+
+if command -v docker-compose >/dev/null 2>&1; then
+    exec docker-compose -f "$PROJECT_DIR/docker-compose.yml" exec -T "$SERVICE_NAME" composer "$@"
+elif command -v docker >/dev/null 2>&1; then
+    exec docker compose -f "$PROJECT_DIR/docker-compose.yml" exec -T "$SERVICE_NAME" composer "$@"
+else
+    exec composer "$@"
+fi

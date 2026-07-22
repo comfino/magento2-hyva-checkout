@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * Comfino Payment Gateway for Magento 2 with Hyvä Checkout
+ *
+ * Links the shared, CDN-served comfino-checkout.css into the checkout <head> (via head.additional) so the
+ * loader spinner is styled at first paint — before the SDK loads — and the bare "Comfino" label never
+ * flashes. The module's own positioning rule is linked via layout <head><css>; this template only carries
+ * the dynamic CDN URL, which layout <css src> cannot express.
+ *
+ * @package Comfino\ComfinoGatewayHyvaCheckout
+ * @author Artur Kozubski <a.kozubski@artkosoft.pl>
+ * @copyright Copyright (c) 2026 Comfino by Comperia.pl S.A.
+ * @license https://opensource.org/licenses/OSL-3.0 Open Software License 3.0
+ * @link https://github.com/comfino/magento2-hyva-checkout
+ */
+
+use Comfino\ComfinoGatewayHyvaCheckout\ViewModel\LoaderStyles;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+/** @var LoaderStyles $loaderStyles */
+$loaderStyles = $block->getData('loader_styles');
+
+$loaderCssUrl = $loaderStyles?->getLoaderCssUrl();
+?>
+<?php if ($loaderCssUrl !== null): ?>
+<link rel="stylesheet" type="text/css" href="<?= $escaper->escapeUrl($loaderCssUrl) ?>" />
+<?php endif; ?>

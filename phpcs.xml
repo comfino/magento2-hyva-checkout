@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ruleset name="Comfino Magento 2 Hyva Checkout" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
+    <description>PHP CodeSniffer configuration for Comfino Magento 2 Hyva Checkout module</description>
+
+    <file>Model</file>
+    <file>Test</file>
+
+    <exclude-pattern>vendor/</exclude-pattern>
+
+    <rule ref="MEQP2">
+        <severity>10</severity>
+        <exclude-pattern>*/Test/*</exclude-pattern>
+    </rule>
+
+    <!-- Parameters defined by Hyvä Checkout's AbstractPlaceOrderService contract cannot be renamed or removed. -->
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter">
+        <exclude-pattern>*/Model/*</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR12">
+        <include-pattern>*/Test/*</include-pattern>
+    </rule>
+</ruleset>

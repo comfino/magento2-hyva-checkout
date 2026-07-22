@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * Comfino Payment Gateway for Magento 2 with Hyvä Checkout
+ *
+ * @package Comfino\ComfinoGatewayHyvaCheckout
+ * @author Artur Kozubski <a.kozubski@artkosoft.pl>
+ * @copyright Copyright (c) 2026 Comfino by Comperia.pl S.A.
+ * @license https://opensource.org/licenses/OSL-3.0 Open Software License 3.0
+ * @link https://github.com/comfino/magento2-hyva-checkout
+ */
+
+use Comfino\ComfinoGateway\Block\Payment\Comfino;
+use Comfino\ComfinoGatewayHyvaCheckout\Magewire\Checkout\Payment\Method\Comfino as ComfinoMagewire;
+use Magento\Framework\Escaper;
+
+/** @var Comfino $block */
+/** @var ComfinoMagewire $magewire */
+/** @var Escaper $escaper */
+
+$config = $block->getConfig();
+
+if ($config->allowedProductTypes === []) {
+    // All product types filtered out for this cart — hide paywall entirely.
+    return;
+}
+
+/*
+ * This template is morphed into the DOM by Magewire when the shopper selects Comfino. It carries NO bootstrap config:
+ * the SDK is bootstrapped once at page load by comfino-register.phtml (which builds the config server-side and emits it
+ * on #comfino-paywall-bootstrap) so the checkout list-item logo can be injected before selection. Here we only provide
+ * the iframe container, the loan-parameter inputs, and the Alpine component that re-attaches to the already-bootstrapped
+ * SDK on this morph.
+ *
+ * The component is registered via Alpine.data() (comfino-register.phtml) and referenced by bare name: the Hyvä-shipped
+ * CSP-friendly Alpine build cannot evaluate JS in directives, and Magewire eval()s any morphed-in <script> (blocked by
+ * the strict CSP), so registration cannot live in this morphed template. init() is auto-invoked by Alpine and the
+ * @message.window handler references the method without ().
+ */
+?>
+<div x-data="comfinoPaywallDataProvider" @message.window="syncLoanParams">
+    <template x-if="error">
+        <div class="message error" x-text="error"></div>
+    </template>
+    <!-- Server-authoritative cart total in grosze. Sourced from the Magewire component ($magewire->loanAmount), which
+         re-renders this input on every quote-mutating round-trip (shipping/coupon/address), so the value stays fresh
+         even though Hyvä does not otherwise re-render payment templates on totals changes. The CDN checkout glue reads
+         it on `checkout:evaluation-process:after` and dispatches `comfino:loan-amount-changed`, which the SDK's
+         MagentoPaywallController funnels into BasePaywallController.propagateCartTotal() to reload the paywall. -->
+    <input id="comfino-loan-amount" name="comfino_loan_amount" type="hidden" value="<?= (int) $magewire->loanAmount ?>" />
+    <!--
+        Loan parameters serialized into the payment form on order submission.
+
+        The SDK's MagentoAdapter writes these inputs directly, but Magewire may re-render the payment block between
+        the last iframe payment-state message and place-order. Binding `:value` to Alpine state retrieved from the
+        SDK on every iframe message keeps the values across re-renders.
+    -->
+    <input id="comfino-loan-type" name="comfino_loan_type" type="hidden" :value="loanType" />
+    <input id="comfino-loan-term" name="comfino_loan_term" type="hidden" :value="loanTerm" />
+    <!-- Comfino web frontend SDK renders the paywall iframe here. -->
+    <div id="comfino-paywall-container"></div>
+</div>

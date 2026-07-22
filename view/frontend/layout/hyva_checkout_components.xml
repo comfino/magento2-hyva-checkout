@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="checkout.payment.methods">
+            <!--
+                The "as" attribute MUST match the Magento payment method code exactly.
+                Block: Comfino\ComfinoGateway\Block\Payment\Comfino (from comfino/magento2 >= 4.0.0).
+                Methods consumed by the template: getConfig() (returns PaywallConfig with authToken,
+                loanAmount, environment, sdkScriptUrl, allowedProductTypes, directRedirect, customPaywallCss);
+                getCartJson(); getCreditorsJson(); getAllowedProductsConfigJson(); getShopEnvironmentJson();
+                getAllowedProductTypesJson(); getShopLanguage(); getStoreCurrency();
+                getPaymentMethodAuth() — SHA3-256 HMAC for paymentMethodItem.auth.
+            -->
+            <block name="checkout.payment.method.comfino"
+               as="comfino"
+               class="Comfino\ComfinoGateway\Block\Payment\Comfino"
+               template="Comfino_ComfinoGatewayHyvaCheckout::hyva-checkout/payment/comfino.phtml"
+            >
+                <arguments>
+                    <!--
+                        Magewire component that keeps #comfino-loan-amount in sync with the quote grand total across
+                        shipping/coupon/address changes (Hyvä does not re-render payment templates on totals changes).
+                    -->
+                    <argument name="magewire" xsi:type="object">Comfino\ComfinoGatewayHyvaCheckout\Magewire\Checkout\Payment\Method\Comfino</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+        <!--
+            Registers the Comfino paywall Alpine.js component AND bootstraps the SDK once at initial page load via the
+            CDN-hosted comfino-magento-hyva.min.js registrar (resolved by PaywallBootstrapConfig::getCheckoutScriptUrl()
+            from the SDK origin). The payment-method template above is morphed into the DOM by Magewire, which eval()s
+            any <script> it inserts (blocked by the strict CSP), so both the Alpine.data() registration and the
+            page-load bootstrap must run from a page-level script instead. A <script src> injected here at page load is
+            allowed by the CSP — the CDN host is allow-listed for script-src by the base module's csp_whitelist.xml — so
+            no inline-script nonce/hash whitelisting is required.
+
+            Placed in "hyva.checkout.api-v1.after" — Hyvä's page-load JS API container, present across the whole
+            supported range (1.0.x–1.3.x). The payment-specific "hyva.checkout.api-v1.payment-methods" container would
+            be more semantic but only exists since 1.3.6; referencing it left the SDK unbootstrapped (no logo/paywall,
+            and the tile loader would spin forever) on older versions. "api-v1.after" renders in the same page-load JS
+            region, so behavior on 1.3.x is unchanged.
+
+            This block uses the Comfino class (not a plain Template) so comfino-register.phtml can build the full paywall
+            config server-side and emit it on an always-present #comfino-paywall-bootstrap[data-comfino-config] element.
+            Bootstrapping at page load (rather than from the selection-gated comfino.phtml) lets the SDK inject the
+            checkout list-item logo as soon as the payment-method radio exists — before the shopper selects Comfino.
+        -->
+        <referenceContainer name="hyva.checkout.api-v1.after">
+            <block name="checkout.payment.method.comfino.register"
+               class="Comfino\ComfinoGateway\Block\Payment\Comfino"
+               template="Comfino_ComfinoGatewayHyvaCheckout::hyva-checkout/payment/comfino-register.phtml">
+                <arguments>
+                    <argument name="paywall_bootstrap_config" xsi:type="object">Comfino\ComfinoGatewayHyvaCheckout\ViewModel\PaywallBootstrapConfig</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

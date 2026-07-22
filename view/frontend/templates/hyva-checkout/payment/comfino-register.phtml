@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * Comfino Payment Gateway for Magento 2 with Hyvä Checkout
+ *
+ * Loads the Comfino paywall registrar (comfino-magento-hyva.min.js, from the Comfino CDN) and emits the page-load
+ * bootstrap config — both once at the initial checkout page load (attached to the hyva.checkout.api-v1.after container).
+ *
+ * Why page load and not the Magewire-morphed payment-method template (comfino.phtml):
+ *   - Magewire eval()s the innerHTML of any <script> it inserts (node_initializer.js), which the strict CSP blocks —
+ *     so the Alpine.data() registration and the SDK bootstrap cannot run from comfino.phtml. A <script src> injected
+ *     here at page load is permitted by the CSP (the host is allow-listed for script-src), without a nonce or hash.
+ *   - comfino.phtml is only rendered once the shopper selects Comfino (Hyvä's canShowMethod() gate). Bootstrapping the
+ *     SDK here, at page load, lets it inject the checkout list-item logo as soon as the payment-method radio exists
+ *     (the SDK renders the item independently of the paywall iframe container — see PaywallManager). The iframe itself
+ *     is still created lazily by the SDK when comfino.phtml morphs in the #comfino-paywall-container on selection.
+ *
+ * The config is built by the PaywallBootstrapConfig view model, which reuses the base module's canonical checkout
+ * config provider — comfino-register.phtml only hands the JSON to the registrar through the data-comfino-config
+ * attribute on #comfino-paywall-bootstrap (a plain attribute is served untouched, never eval'd, not governed by
+ * script-src). The registrar reads and JSON.parses it at page load.
+ *
+ * The registrar bundle is CDN-hosted (same origin as the web SDK, resolved by
+ * PaywallBootstrapConfig::getCheckoutScriptUrl()), not bundled in this module. Its host is already allow-listed for
+ * script-src by the base module's csp_whitelist.xml; crossorigin="anonymous" is set because the bundle is cross-origin
+ * — matching how the SDK module itself is loaded. If the SDK URL is unavailable the registrar is not emitted.
+ *
+ * @package Comfino\ComfinoGatewayHyvaCheckout
+ * @author Artur Kozubski <a.kozubski@artkosoft.pl>
+ * @copyright Copyright (c) 2026 Comfino by Comperia.pl S.A.
+ * @license https://opensource.org/licenses/OSL-3.0 Open Software License 3.0
+ * @link https://github.com/comfino/magento2-hyva-checkout
+ */
+
+use Comfino\ComfinoGatewayHyvaCheckout\ViewModel\PaywallBootstrapConfig;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+/** @var PaywallBootstrapConfig $bootstrapConfig */
+$bootstrapConfig = $block->getData('paywall_bootstrap_config');
+
+$paywallConfigJson = $bootstrapConfig?->getBootstrapConfigJson();
+
+$scriptUrl = $bootstrapConfig?->getCheckoutScriptUrl();
+?>
+<?php if ($paywallConfigJson !== null): ?>
+<div id="comfino-paywall-bootstrap" data-comfino-config="<?= $escaper->escapeHtmlAttr($paywallConfigJson) ?>" hidden></div>
+<?php endif; ?>
+<?php if ($scriptUrl !== null): ?>
+<script src="<?= $escaper->escapeUrl($scriptUrl) ?>" crossorigin="anonymous"></script>
+<?php endif; ?>
