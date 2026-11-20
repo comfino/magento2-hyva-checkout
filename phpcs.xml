@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<ruleset name="ComfinoPay Magento 2 Hyva Checkout" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
+    <description>PHP CodeSniffer configuration for ComfinoPay Magento 2 Hyva Checkout module</description>
+
+    <file>Model</file>
+    <file>Test</file>
+
+    <!-- A 120-column limit is a soft guideline (SHOULD NOT); don't let a line-length warning alone fail the build the way a real error would. -->
+    <config name="ignore_warnings_on_exit" value="1"/>
+
+    <exclude-pattern>vendor/</exclude-pattern>
+
+    <rule ref="MEQP2">
+        <severity>10</severity>
+        <exclude-pattern>*/Test/*</exclude-pattern>
+    </rule>
+
+    <!-- Parameters defined by Hyvä Checkout's AbstractPlaceOrderService contract cannot be renamed or removed. -->
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter">
+        <exclude-pattern>*/Model/*</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR12">
+        <include-pattern>*/Test/*</include-pattern>
+    </rule>
+
+    <!-- Align with the 160/180 soft/hard split used across the other ComfinoPay PHP repos, in place of the sniff's stock 80/100
+         defaults. Declared last so MEQP2's and PSR12's own Generic.Files.LineLength references (pulled in above) don't reset
+         these properties back to their stock defaults. -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="160"/>
+            <property name="absoluteLineLimit" value="180"/>
+        </properties>
+    </rule>
+</ruleset>

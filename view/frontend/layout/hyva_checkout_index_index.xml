@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * ComfinoPay Payment Gateway for Magento 2 with Hyvä Checkout
+ *
+ * Loads the loader styles into the checkout <head> so the spinner is styled at first paint: the module's positioning rule
+ * via <head><css>, and the CDN comfino-checkout.css (dynamic URL) via a head.additional template.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Comfino_ComfinoGatewayHyvaCheckout::css/comfino-hyva-checkout.css"/>
+    </head>
+    <body>
+        <referenceContainer name="head.additional">
+            <block name="comfino.checkout.loader.styles"
+                   class="Magento\Framework\View\Element\Template"
+                   template="Comfino_ComfinoGatewayHyvaCheckout::hyva-checkout/payment/comfino-loader-styles.phtml">
+                <arguments>
+                    <argument name="loader_styles" xsi:type="object">Comfino\ComfinoGatewayHyvaCheckout\ViewModel\LoaderStyles</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

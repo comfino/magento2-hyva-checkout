@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Hyva\Checkout\Model\Magewire\Payment\PlaceOrderServiceProvider">
+        <arguments>
+            <argument name="placeOrderServiceList" xsi:type="array">
+                <item name="comfino" xsi:type="object">
+                    Comfino\ComfinoGatewayHyvaCheckout\Model\Checkout\PlaceOrderService
+                </item>
+            </argument>
+        </arguments>
+    </type>
+    <!--
+        Renders the logo placeholder and loader spinner into the tile's icon slot (method-list.phtml outputs
+        MethodMetaData::renderIcon() as raw HTML), so the tile is never logo-less before the SDK paints it.
+    -->
+    <type name="Hyva\Checkout\Model\MethodMetaData">
+        <plugin name="comfino_render_payment_method_loader" type="Comfino\ComfinoGatewayHyvaCheckout\Plugin\Hyva\Checkout\Model\MethodMetaData\RenderComfinoLoader"/>
+    </type>
+</config>

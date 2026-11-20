@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * ComfinoPay Payment Gateway for Magento 2 with Hyvä Checkout
+ *
+ * @package Comfino\ComfinoGatewayHyvaCheckout
+ * @author Artur Kozubski <a.kozubski@artkosoft.pl>
+ * @copyright Copyright (c) 2026 by ComfinoPay sp. z o.o.
+ * @license https://opensource.org/licenses/OSL-3.0 Open Software License 3.0
+ * @link https://github.com/comfino/magento2-hyva-checkout
+ */
+
+use Comfino\ComfinoGateway\Block\Payment\Comfino;
+use Comfino\ComfinoGatewayHyvaCheckout\Magewire\Checkout\Payment\Method\Comfino as ComfinoMagewire;
+use Magento\Framework\Escaper;
+
+/** @var Comfino $block */
+/** @var ComfinoMagewire $magewire */
+/** @var Escaper $escaper */
+
+$config = $block->getConfig();
+
+if ($config->allowedProductTypes === []) {
+    // All product types filtered out for this cart — hide paywall entirely.
+    return;
+}
+
+/* Morphed in by Magewire when the shopper selects ComfinoPay, so it carries no bootstrap config: the SDK is bootstrapped at
+   page load by comfino-register.phtml. This template only provides the container, the loan inputs and the Alpine component.
+
+  The component is registered with Alpine.data() in the registrar and referenced by bare name: the CSP-friendly Alpine
+  build cannot evaluate JS in directives, and Magewire eval()s morphed-in scripts, which the CSP blocks. */
+?>
+<div x-data="comfinoPaywallDataProvider" @message.window="syncLoanParams">
+    <template x-if="error">
+        <div class="message error" x-text="error"></div>
+    </template>
+    <!-- Cart total in grosze, re-rendered from the Magewire component on every quote change. The CDN glue reads it on
+         `checkout:evaluation-process:after` and dispatches `comfino:loan-amount-changed` to reload the paywall. -->
+    <input id="comfino-loan-amount" name="comfino_loan_amount" type="hidden" value="<?= (int) $magewire->loanAmount ?>" />
+    <!-- Loan parameters submitted with the order. Magewire may re-render this block between the last iframe message and
+         place-order, so `:value` is bound to Alpine state read from the SDK to survive it. -->
+    <input id="comfino-loan-type" name="comfino_loan_type" type="hidden" :value="loanType" />
+    <input id="comfino-loan-term" name="comfino_loan_term" type="hidden" :value="loanTerm" />
+    <!-- ComfinoPay web frontend SDK renders the paywall iframe here. -->
+    <div id="comfino-paywall-container"></div>
+</div>

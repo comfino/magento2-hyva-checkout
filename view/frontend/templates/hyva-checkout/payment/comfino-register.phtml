@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * ComfinoPay Payment Gateway for Magento 2 with Hyvä Checkout
+ *
+ * Loads the ComfinoPay registrar (`comfino-magento-hyva.min.js`, from the CDN) and emits the bootstrap config, once at page load.
+ *
+ * Page load, not the Magewire-morphed `comfino.phtml`: Magewire `eval()`s the inline scripts it inserts, which the strict CSP
+ * blocks, so `Alpine.data()` registration and the SDK bootstrap need a page-level `<script src>` (the CDN host is allow-listed).
+ * Bootstrapping here also lets the SDK inject the list-item logo before the shopper selects ComfinoPay; the iframe is still
+ * created lazily when `comfino.phtml` morphs in the container.
+ *
+ * The config comes from `PaywallBootstrapConfig` as JSON in a plain `data-comfino-config` attribute on `#comfino-paywall-bootstrap`,
+ * which is never eval'd. The registrar is not emitted when the SDK URL is unavailable.
+ *
+ * @package Comfino\ComfinoGatewayHyvaCheckout
+ * @author Artur Kozubski <a.kozubski@artkosoft.pl>
+ * @copyright Copyright (c) 2026 by ComfinoPay sp. z o.o.
+ * @license https://opensource.org/licenses/OSL-3.0 Open Software License 3.0
+ * @link https://github.com/comfino/magento2-hyva-checkout
+ */
+
+use Comfino\ComfinoGatewayHyvaCheckout\ViewModel\PaywallBootstrapConfig;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+/** @var PaywallBootstrapConfig $bootstrapConfig */
+$bootstrapConfig = $block->getData('paywall_bootstrap_config');
+?>
+<?php if (($paywallConfigJson = $bootstrapConfig?->getBootstrapConfigJson()) !== null): ?>
+<div id="comfino-paywall-bootstrap" data-comfino-config="<?= $escaper->escapeHtmlAttr($paywallConfigJson) ?>" hidden></div>
+<?php endif; ?>
+<?php if (($scriptUrl = $bootstrapConfig?->getCheckoutScriptUrl()) !== null): ?>
+<script src="<?= $escaper->escapeUrl($scriptUrl) ?>" crossorigin="anonymous"></script>
+<?php endif; ?>

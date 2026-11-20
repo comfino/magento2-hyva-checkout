@@ -1,0 +1,26 @@
+services:
+    comfino-magento2-hyva-checkout:
+        build:
+            context: ./
+            dockerfile: config/docker/Dockerfile
+        working_dir: /comfino-magento2-hyva-checkout
+        tty: true
+        volumes:
+            - ./:/comfino-magento2-hyva-checkout
+            - ~/.composer:/home/comfino/.composer
+
+    comfino-magento2-hyva-checkout-coverage:
+        build:
+            context: ./
+            dockerfile: config/docker/Dockerfile
+            args:
+                WITH_XDEBUG: "true"
+        working_dir: /comfino-magento2-hyva-checkout
+        tty: true
+        environment:
+            XDEBUG_MODE: coverage
+        volumes:
+            - ./:/comfino-magento2-hyva-checkout
+            - ~/.composer:/home/comfino/.composer
+        profiles:
+            - coverage

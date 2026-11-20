@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Proxy script: runs PHPStan inside Docker if available, otherwise on host
+
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+PROJECT_DIR=$(dirname "$SCRIPT_DIR")
+SERVICE_NAME="comfino-magento2-hyva-checkout"
+
+if command -v docker-compose >/dev/null 2>&1; then
+    exec docker-compose -f "$PROJECT_DIR/docker-compose.yml" exec -T "$SERVICE_NAME" php -d memory_limit=512M vendor/bin/phpstan "$@"
+elif command -v docker >/dev/null 2>&1; then
+    exec docker compose -f "$PROJECT_DIR/docker-compose.yml" exec -T "$SERVICE_NAME" php -d memory_limit=512M vendor/bin/phpstan "$@"
+else
+    exec php -d memory_limit=512M vendor/bin/phpstan "$@"
+fi

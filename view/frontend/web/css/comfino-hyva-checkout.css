@@ -1,0 +1,27 @@
+/*
+ * Positioning context for the ComfinoPay loader overlay. The CDN `comfino-checkout.css` places the loader absolutely over the
+ * tile, but the SDK adds `.comfino-payment-method-item` too late for first paint, so Hyvä's tile id gets `position: relative`
+ * here. Kept out of the CDN file because the selector is Hyvä-specific.
+ */
+#payment-method-option-comfino {
+    position: relative;
+}
+
+/*
+ * Logo placeholder sizing: the SDK only swaps `src` on an adopted node and applies no inline size, so the shop CSS does
+ * (see `RenderComfinoLoader`).
+ */
+#payment-method-option-comfino .comfino-payment-method-item__logo {
+    height: 18px;
+    max-width: 95px;
+    margin: 0 5px;
+    vertical-align: middle;
+}
+
+/*
+ * Hide the tile when the SDK fails or stalls (the registrar sets `.comfino-sdk-failed` on <body>, which survives Magewire
+ * morphs), as Luma does. `:not(--ready)` lets a slow SDK that succeeds later reveal it again.
+ */
+body.comfino-sdk-failed #payment-method-option-comfino:not(.comfino-payment-method-item--ready) {
+    display: none !important;
+}
